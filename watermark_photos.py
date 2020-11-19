@@ -93,15 +93,9 @@ if __name__ == '__main__':
 		if infile != outfile:
 			try:
 				with Image.open(infile) as im:
-					#print(infile, im.mode, im.format, f"{im.size}x{im.mode}")
-					##resized_im = im.Reduce(4)
-					#watermark_txt, text_name = create_tiled_watermark(im, outfile)
 					watermark_txt = create_tiled_watermark(im, text_name)
 					watermark_txt.save(text_name)
-					##print(watermark_txt, watermark_txt.mode, watermark_txt.format, f"{watermark_txt.size}x{watermark_txt.mode}")
 					#new_im = basic_transform(im, watermark_txt)
-					##new_im = basic_transform(im)
-					##new_im = basic_transform(im, outfile)
 					#new_im.save(outfile)
 			except OSError:
 				print("cannot convert", infile)
