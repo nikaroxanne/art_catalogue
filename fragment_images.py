@@ -10,32 +10,36 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 def make_fragment_image(image, offset_int):
 	w, h = image.size
 	drawing = ImageDraw.Draw(image)
-	#drawing.line((0,0) + image.size, fill=128, width=25)
-	#drawing.line((0, w, h, 0), fill=128, width=25)
-	
-	#base = image.convert(mode="RGBA")
 	base = image.copy()
 
+
+	###Note: if using a 3x3 grid format, use first offset_w, offset_h pair
+	## Otherwise  use offset_w, offset_h 
 	offset_w = offset_int // 3
 	offset_h = offset_int % 3
 	##offset_w = offset_int // 9
 	##offset_h = offset_int % 9
 
+
 	#### *** testing file resizing ****
 	test_w, test_h = (int(image.size[0] / 9), int(image.size[1] / 9))
 
-	#base.resize((test_w, test_h))
 	new_base_img_size = (int(w / 3),  int(h / 3))
 	new_base_w, new_base_h = new_base_img_size[0], new_base_img_size[1]
+	
 	base.resize((int(w / 3),  int(h / 3)))
 
-	#background_image = Image.new("RGBA", (test_w, test_h), (255,255,255,0))
-	#background_image = Image.new("RGBA", (w, h), (255,255,255, 255))
+
 	background_image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
 	#background_image = Image.new("RGBA", new_base_img_size, (0, 0, 0, 0))
 
+	##Crop dimensions for smaller squares (smaller area of pixels) on photos subdivided into larger grids
+	## Thus, these crop_l, crop_h definitions result in a crop area that is a smaller fraction of total original image size
+	## i.e. 1/81 for a 9x9 grid
+
 	#crop_l, crop_t = (offset_int * test_w, offset_int * test_h)
-	
+
+
 	##crop_l, crop_t = (offset_w * test_w, offset_h * test_h)
 	##crop_dim = (crop_l, crop_t, crop_l + test_w, crop_t + test_h)
 	
