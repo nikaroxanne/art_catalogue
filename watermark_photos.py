@@ -9,65 +9,93 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 def make_fragment_image(image, offset_int):
 	w, h = image.size
+	##print("original image width and height: %d %d \n", w, h)
 	drawing = ImageDraw.Draw(image)
-	#drawing.line((0,0) + image.size, fill=128, width=25)
-	#drawing.line((0, w, h, 0), fill=128, width=25)
 	
 	#base = image.convert(mode="RGBA")
-	base = image.copy()
+	##base = image.copy()
 
 	offset_w = offset_int // 3
 	offset_h = offset_int % 3
-	##offset_w = offset_int // 9
-	##offset_h = offset_int % 9
+	
+	#offset_w = offset_int // 9
+	#offset_h = offset_int % 9
 
 	#### *** testing file resizing ****
-	test_w, test_h = (int(image.size[0] / 9), int(image.size[1] / 9))
+	##test_w, test_h = (int(image.size[0] / 9), int(image.size[1] / 9))
 
 	#base.resize((test_w, test_h))
-	new_base_img_size = (int(w / 3),  int(h / 3))
-	new_base_w, new_base_h = new_base_img_size[0], new_base_img_size[1]
-	base.resize((int(w / 3),  int(h / 3)))
+	##new_base_img_size = (int(w / 3),  int(h / 3))
+	##new_base_w, new_base_h = new_base_img_size[0], new_base_img_size[1]
+	##base.resize((int(w / 3),  int(h / 3)))
 
-	#background_image = Image.new("RGBA", (test_w, test_h), (255,255,255,0))
-	#background_image = Image.new("RGBA", (w, h), (255,255,255, 255))
-	background_image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+	new_base_img_size = (int(w / 9),  int(h / 9))
+	new_base_w, new_base_h = new_base_img_size[0], new_base_img_size[1]
+	#tile_image = base.resize(new_base_img_size)
+	##base.resize(new_base_img_size)
+	##print("original base sizes:", base.size, "\n")
+	new_base = image.copy().resize(new_base_img_size)
+	##print("new base sizes:", new_base.size, "\n")
+	
+	##base.show()	
+
+	##background_image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
 	#background_image = Image.new("RGBA", new_base_img_size, (0, 0, 0, 0))
 
 	#crop_l, crop_t = (offset_int * test_w, offset_int * test_h)
-	
 	##crop_l, crop_t = (offset_w * test_w, offset_h * test_h)
 	##crop_dim = (crop_l, crop_t, crop_l + test_w, crop_t + test_h)
 	
-
 	###testing new crop dimensions
-	crop_l, crop_t = (offset_w * new_base_w, offset_h * new_base_h)
-	crop_dim = (crop_l, crop_t, crop_l + new_base_w, crop_t + new_base_h)
-
-
-	tile_image = base.crop(crop_dim)
-	#tile_image.show()
-
-	background_image.paste(tile_image, (crop_l, crop_t))
-
-	print("test image size: %d %d \n", test_w, test_h)
-
-
+	#crop_base_size = tuple(map(lambda x: int(x / 3), new_base_img_size))
+	crop_base_size = list(map(lambda x: int(x / 3), new_base_img_size))
+	###print("crop base size dimensions: ", crop_base_size[0], crop_base_size[1], "\n")
+	new_crop_base_w, new_crop_base_h = (crop_base_size[0], crop_base_size[1])
 	
-	######
-	###	Font path has to be specified; there is no exception handling built into the truetype method for the ImageFont class,
-	### 	So this will not draw an image, but it will fail to raise an exception for that failure being caused by a nonexistant path for a font file
-	### 	Thus: font path has to be explicitly specified, using specifics for each machine (no library assets installed with Pillow package)
-	###	fnt = ImageFont.truetype("Pillow/Tests/fonts/times.ttf", 40)
-	###	fnt = ImageFont.truetype("/System/Library/Fonts/Times.ttc", 120)
-	########
+	crop_l, crop_t = (offset_w * new_crop_base_w, offset_h * new_crop_base_h)
+	crop_dim = (crop_l, crop_t, crop_l + new_crop_base_w, crop_t + new_crop_base_h)
+	###print("crop dimensions: ", *crop_dim, "\n")
+	
+	
+
+	##crop_l, crop_t = (offset_w * new_base_w, offset_h * new_base_h)
+	##crop_dim = (crop_l, crop_t, crop_l + new_base_w, crop_t + new_base_h)
+	##print("crop dimensions: ", *crop_dim, "\n")
 
 
+	###print("dimensions for new base image size: \n", ' '.join(map(str, new_base_img_size)))
 
-	#img_final = Image.alpha_composite(base, txt_img)
-	#img_final.show()
-	background_image.show()
-	return background_image
+	#border_size_dim = (int(new_base_w / 3), int(new_base_h / 3))
+	border_size_dim = list((int(new_base_w / 9), int(new_base_h / 9)))
+	
+
+	crop_w_border_size = list(map(lambda x, y: x + y, new_base_img_size, border_size_dim))
+	##crop_w_border_size = list(map(lambda x, y: x + y, crop_base_size, border_size_dim))
+	##print("crop size with border: \n", ' '.join(map(str, crop_w_border_size)))
+	###print("border size: ", ' '.join(map(str, border_size_dim)), "\n")
+	###print("crop size with border: ", *crop_w_border_size, "\n")
+	
+	##background_crop_img = Image.new("RGBA", (crop_w_border_size), (255, 255, 255, 255))
+	background_crop_img = Image.new("RGBA", (crop_w_border_size), (0, 0, 0, 255))
+	#background_crop_img.show()
+
+	#tile_image = base.resize(new_base_img_size)
+	##tile_image = base.crop(crop_dim)
+	tile_image = new_base.crop(crop_dim)
+	#tile_image.crop(crop_dim)
+	##tile_image.show()
+
+	#background_image.paste(tile_image, (crop_l, crop_t))
+	
+	background_crop_img.paste(tile_image, (crop_l, crop_t))
+	
+	background_crop_img.show()
+
+	#background_crop_img.paste(tile_image, (crop_l, crop_t))
+
+	#background_image.show()
+	#return background_image
+	return background_crop_img
 
 
 
@@ -167,16 +195,17 @@ def create_tiled_watermark(image, watermark_test_outfile):
 
 if __name__ == '__main__':
 	test_filename = sys.argv[1]
-	print("test filename:", test_filename, "\n")
+	##print("test filename:", test_filename, "\n")
 	
 	for infile in sys.argv[1:]:
 		img_dirname = os.path.dirname(infile)
-		print("image dirname is:", img_dirname, "\n")
+		##print("image dirname is:", img_dirname, "\n")
 		f, e = os.path.splitext(infile)
-		print("image name is:", f, "image extension is:", e, "\n")
-		##outfile = f + "_watermark.jpg"
-		#outfile = f + "_watermark" + e
-		outfile = f + "_watermark.jpeg"
+		basename_f = f.split('/')[-1]
+		##print("image name is:", f, "image extension is:", e, "\n")
+		print("base filename is:", basename_f, "\n")
+		#outfile = f + "_watermark.jpeg"
+		outfile = basename_f + "_watermark.jpeg"
 		text_name = "just_text_" + outfile
 		
 		if infile != outfile:
@@ -187,8 +216,10 @@ if __name__ == '__main__':
 					#new_im = basic_transform(im, watermark_txt)
 					#new_im.save(outfile)
 					#new_fragment = make_fragment_image(im, 2)
-					for x in range(6):
+					for x in range(2):
 						new_fragment = make_fragment_image(im, x)
+						new_im_name = "fragment_" + str(x) + "_" + outfile
+						print("new file name: ", new_im_name, "\n")
 					#new_fragment = make_fragment_image(im, 5)
 
 			except OSError:
