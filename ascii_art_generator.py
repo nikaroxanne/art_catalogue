@@ -13,33 +13,20 @@ import argparse
 ################################################################################################################
 
 
-def pixelate(img, i_range, fname):
+def crop_greyscale(img, i_range, fname):
 	im_orig_size=img.size
 	w=im_orig_size[0]
 	h=im_orig_size[1]
 	print("Original height: {0} and width {1}".format(w, h))
 	print("Target size for pixelated image\n Height: {0} and Width: {1}".format(i_range[0], i_range[1]))
 
-	##im_pix_crop.resize(((320 // i_range[0]), (200 // i_range[1])), Image.BILINEAR)
-	#im_pix_crop.resize((i_range[0], i_range[1]), Image.BILINEAR)
-	#im_pix.resize(((w // i_range[0]), (h // i_range[1])), Image.BILINEAR)
 	im_pix_crop= img.resize((i_range[0], i_range[1]), Image.BILINEAR)
-#	im_pix.resize((i_range[0], i_range[1]), Image.BILINEAR)
-	im_pix= img.resize((i_range), Image.BILINEAR)
-	#im_pix.resize(((w // i_range[0]), (h // i_range[1])), Image.NEAREST)
-	
 
 	pix_size= (int(w / 4), int(h / 4))
-	im_pix.show()
-	#crop_orig=im_pix_crop.convert("P",palette=Image.ADAPTIVE,colors=24)
-	crop_orig=im_pix_crop.convert("P",palette=Image.ADAPTIVE,colors=256)
-	im_pix_crop.resize(pix_size, Image.NEAREST)
-	im_pix.resize((im_orig_size), Image.NEAREST)
-	im_pix.show()
-	#im_pix_crop.show()
-	crop_orig.show()
-	
-	return im_pix, crop_orig
+	crop_greyscale=im_pix_crop.convert("L")
+	crop_greyscale.show()	
+
+	return crop_greyscale
 
 def merge():
 	return 0
@@ -68,11 +55,10 @@ if __name__ == '__main__':
 	parser,args=setup_options()
 	imgfile_list=args.file	
 	pixelate_scale=args.size
-	print("imgfile list: {0}".format(imgfile_list))
+	#print("imgfile list: {0}".format(imgfile_list))
 	imgfile=args.file[0]
-	print("imgfile: {0}".format(imgfile))
+	#print("imgfile: {0}".format(imgfile))
 
-	
 	if pixelate_scale is None:
 		pixelate_size = (320,200)
 	else:
@@ -83,47 +69,32 @@ if __name__ == '__main__':
 		print("image dirname is:", img_dirname, "\n")
 		f, e = os.path.splitext(imgfile)
 		print("image name is:", f, "image extension is:", e, "\n")
-		outfile = f + "_pixelated.bmp"
-		outfile2 = f + "_pixelated2.bmp"
-		pix_list = f + "_pixel_list3.txt"
+		outfile = f + "_ascii.bmp"
+		outfile2 = f + "_ascii2.bmp"
+		pix_list = f + "_asciiart_hex_list3.txt"
 		#if imgfile != outfile:
+		asciichars = ["@", "J", "D", "%", "*", "P", "+", "Y", "$", ",", "."]
+		
 		try:
-
 			with Image.open(imgfile) as im:
-				pixel_img,crop_pixel_img = pixelate(im, pixelate_size, f)
-				pixel_img.save(outfile)
-				crop_pixel_img.save(outfile2)
-				pix_bitvals = list(crop_pixel_img.getdata())
-				num_pixbitvals= len(pix_bitvals) 
-				##num_pixhexvals= num_pixbitvals // 27
-				##num_pixhexvals= num_pixbitvals // 100
-				num_pixhexvals= num_pixbitvals
-				print("size of pix_hexvals array: {0}".format(num_pixhexvals))
-				pix_hexvals = [0] * (num_pixhexvals)
-				print("pix_hexvals array initial: {0}".format(pix_hexvals))
-				#for i in range(0,len(pix_bitvals),9):
-				##for i in range(0,len(pix_bitvals)-1,27):
-				#for i in range(0,len(pix_bitvals)-1, 10):
-				for i in range(0,len(pix_bitvals)-1):
-					pix_hexval=pix_bitvals[i]
-					##pix_hexval_index=(i // 27)
-					#pix_hexval_index=(i // 10)
-					pix_hexval_index=i
-					if (pix_hexval_index < num_pixhexvals):
-						pix_hexvals[pix_hexval_index]=pix_hexval
-					print("byte value for pixel {0}: {1}".format(i, pix_hexval))
-					print("hexval index for pixel {0}: {1}".format(i, pix_hexval_index))
-				#pix_hexvals=list(map(lambda x: hex(x), pix_bitvals))
-				print("pix_hexvals array final: {0}".format(pix_hexvals))
-				pix_hexvals=list(map(lambda x: hex(x), pix_hexvals))
-				print("pix_hexvals array (hex format) final: {0}".format(pix_hexvals))
+				new_width=pixelate_size[0]
+				greyscale_crop_img = crop_greyscale(im, pixelate_size, f)
+				greyscale_bitvals = list(greyscale_crop_img.getdata())
+				ascii_pixels=[ asciichars[grey_pixel //25] for grey_pixel in greyscale_bitvals]
+				ascii_pixels=''.join(ascii_pixels)
+				count_ascii_pixels=len(ascii_pixels)
+				
+				ascii_image=[ascii_pixels[index:index+new_width] for index in range(0, count_ascii_pixels, new_width)]
+				ascii_image='\n'.join(ascii_image)
+				print(ascii_image)			
+	
+				with open(outfile, 'w') as px:
+					px.write(ascii_image)	
+			
+				pix_hexvals=list(map(lambda x: hex(x), greyscale_bitvals))
 				bitmap_rows=pixelate_scale[1]
 				bitmap_cols=pixelate_scale[0]
 				with open(pix_list, 'w') as px:
-					#for i in range(0, (len(pix_hexvals) - 320), 320):
-					#	pixrow=','.join((pix_hexvals[j]) for j in range(i, i+320))
-					#for i in range(0, 20):
-					#	pixrow=','.join((pix_hexvals[j]) for j in range(32*i, (32*i+32)))
 					for i in range(0, bitmap_rows):
 						pixrow=','.join((pix_hexvals[j]) for j in range(bitmap_cols*i, (bitmap_cols*i+bitmap_cols)))
 						print("pixel row for pixel {0}: {1}".format(i, pixrow))
